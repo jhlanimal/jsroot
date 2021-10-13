@@ -828,6 +828,7 @@
      * @param {object|string} json  object where references will be replaced
      * @returns {object} parsed object */
    JSROOT.parse = function(json) {
+      console.log(json)
 
       if (!json) return null;
 
@@ -1028,6 +1029,7 @@
      * @param {number} [spacing] - optional line spacing in JSON
      * @returns {string} produced JSON code */
    JSROOT.toJSON = function(obj, spacing) {
+      console.log(obj);
       if (!obj || typeof obj !== 'object') return "";
 
       let map = []; // map of stored objects
@@ -1161,9 +1163,7 @@
    /** @summary Old request method, kept only for internal use
      * @private */
    JSROOT.NewHttpRequest = function(url, kind, user_accept_callback, user_reject_callback) {
-
       let xhr = JSROOT.nodejs ? new (require("xhr2"))() : new XMLHttpRequest();
-
       xhr.http_callback = (typeof user_accept_callback == 'function') ? user_accept_callback.bind(xhr) : function() {};
       xhr.error_callback = (typeof user_reject_callback == 'function') ? user_reject_callback.bind(xhr) : function(err) { console.warn(err.message); this.http_callback(null); }.bind(xhr);
 
@@ -1204,7 +1204,7 @@
          }
 
          if (this.readyState != 4) return;
-
+         console.log(this)
          if ((this.status != 200) && (this.status != 206) && !browser.qt5 &&
              // in these special cases browsers not always set status
              !((this.status == 0) && ((url.indexOf("file://")==0) || (url.indexOf("blob:")==0)))) {
@@ -1252,7 +1252,7 @@
          xhr.nodejs_checkzip = true;
          xhr.responseType = 'arraybuffer';
       }
-
+      console.log(xhr)
       return xhr;
    }
 
@@ -1358,11 +1358,13 @@
 
    // Open ROOT file, defined in JSRoot.io.js
    JSROOT.openFile = filename => {
+      console.log("open file")
       return jsroot_require("io").then(() => JSROOT.openFile(filename));
    }
 
    // Draw object, defined in JSRoot.painter.js
    JSROOT.draw = (divid, obj, opt) => {
+      console.error(divid,obj,opt)
       return jsroot_require("painter").then(() => JSROOT.draw(divid, obj, opt));
    }
 
@@ -1431,6 +1433,8 @@
      * obj.fName = "name";
      * obj.fTitle = "title"; */
    let create = (typename, target) => {
+
+      console.log(target);
       let obj = target || {};
 
       switch (typename) {
@@ -1753,6 +1757,7 @@
      * @param {array} [xpts] - array with X coordinates
      * @param {array} [ypts] - array with Y coordinates */
    JSROOT.createTGraph = (npoints, xpts, ypts) => {
+
       let graph = extend(create("TGraph"), { fBits: 0x408, fName: "graph", fTitle: "title" });
 
       if (npoints > 0) {
@@ -1804,6 +1809,7 @@
    /** @summary Returns methods for given typename
      * @private */
    JSROOT.getMethods = function(typename, obj) {
+      // console.log(obj)
 
       let m = methodsCache[typename],
           has_methods = (m!==undefined);

@@ -338,6 +338,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
    /** @summary Create geometry
      * @private */
    GeometryCreator.prototype.create = function() {
+      ////debugger
       if (this.nfaces !== this.indx/9)
          console.error('Mismatch with created ' + this.nfaces + ' and filled ' + this.indx/9 + ' number of faces');
 
@@ -745,6 +746,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function createSphereBuffer( shape, faces_limit ) {
+      console.error(arguments)
       let radius = [shape.fRmax, shape.fRmin],
           phiStart = shape.fPhi1,
           phiLength = shape.fPhi2 - shape.fPhi1,
@@ -871,6 +873,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function createTubeBuffer( shape, faces_limit) {
+      console.error(arguments)
       let outerR, innerR; // inner/outer tube radius
       if ((shape._typename == "TGeoCone") || (shape._typename == "TGeoConeSeg")) {
          outerR = [ shape.fRmax2, shape.fRmax1 ];
@@ -1016,6 +1019,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function createEltuBuffer( shape , faces_limit ) {
+      console.error(arguments)
       let radiusSegments = Math.max(4, Math.round(360/geo.GradPerSegm));
 
       if (faces_limit < 0) return radiusSegments*4;
@@ -1067,6 +1071,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function createTorusBuffer( shape, faces_limit ) {
+      console.error(arguments)
       let radius = shape.fR,
           radialSegments = Math.max(6, Math.round(360/geo.GradPerSegm)),
           tubularSegments = Math.max(8, Math.round(shape.fDphi/geo.GradPerSegm)),
@@ -1160,6 +1165,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function createPolygonBuffer( shape, faces_limit ) {
+      console.error(arguments)
       let thetaStart = shape.fPhi1,
           thetaLength = shape.fDphi,
           radiusSegments, factor;
@@ -1337,6 +1343,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function createXtruBuffer( shape, faces_limit ) {
+      console.error(arguments)
       let nfaces = (shape.fNz-1) * shape.fNvert * 2;
 
       if (faces_limit < 0) return nfaces + shape.fNvert*3;
@@ -1397,6 +1404,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function createParaboloidBuffer( shape, faces_limit ) {
+      console.error(arguments)
 
       let radiusSegments = Math.max(4, Math.round(360/geo.GradPerSegm)),
           heightSegments = 30;
@@ -1496,6 +1504,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function createHypeBuffer( shape, faces_limit ) {
+      console.error(arguments)
 
       if ((shape.fTin===0) && (shape.fTout===0))
          return createTubeBuffer(shape, faces_limit);
@@ -1569,6 +1578,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function createTessellatedBuffer( shape, faces_limit) {
+      console.error(arguments)
       let numfaces = 0;
 
       for (let i = 0; i < shape.fFacets.length; ++i) {
@@ -1738,6 +1748,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
     * @param {Object} geom  - can be THREE.Geometry, THREE.BufferGeometry, ThreeBSP.Geometry or interim array of polygons
     * @private */
    geo.numGeometryFaces = function(geom) {
+      console.error(arguments)
       if (!geom) return 0;
 
       if (geom instanceof ThreeBSP.Geometry)
@@ -1759,6 +1770,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
     * @param {Object} geom  - can be THREE.Geometry, THREE.BufferGeometry, ThreeBSP.Geometry or interim array of polygons
     * @private */
    geo.numGeometryVertices = function(geom) {
+      console.error(arguments)
       if (!geom) return 0;
 
       if (geom instanceof ThreeBSP.Geometry)
@@ -1808,6 +1820,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
     * @memberof JSROOT.GEO
     * @private */
    function createHalfSpace(shape, geom) {
+      console.error(arguments)
       if (!shape || !shape.fN || !shape.fP) return null;
 
       let vertex = new THREE.Vector3(shape.fP[0], shape.fP[1], shape.fP[2]),
@@ -1875,6 +1888,8 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @private */
    function createComposite( shape, faces_limit ) {
 
+      console.error(arguments)
+
       if (faces_limit < 0)
          return createGeometry(shape.fNode.fLeft, -10) +
                 createGeometry(shape.fNode.fRight, -10);
@@ -1906,8 +1921,10 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
       if (n1 < faces_limit) {
 
          if (shape.fNode.fRight._typename == "TGeoHalfSpace") {
+            ////debugger
             geom2 = createHalfSpace(shape.fNode.fRight, geom1);
          } else {
+            ////debugger
             geom2 = createGeometry(shape.fNode.fRight, faces_limit);
          }
 
@@ -1996,10 +2013,12 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
     * @private */
    createGeometry = function( shape, limit ) {
       if (limit === undefined) limit = 0;
-
+      ////debugger
       try {
          switch (shape._typename) {
-            case "TGeoBBox": return createCubeBuffer( shape, limit );
+            case "TGeoBBox": 
+            
+            return createCubeBuffer( shape, limit );
             case "TGeoPara": return createParaBuffer( shape, limit );
             case "TGeoTrd1":
             case "TGeoTrd2": return createTrapezoidBuffer( shape, limit );
@@ -2051,6 +2070,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function provideObjectInfo(obj) {
+      console.error(arguments)
       let info = [], shape = null;
 
       if (obj.fVolume !== undefined) shape = obj.fVolume.fShape; else
@@ -2118,6 +2138,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
          case "TGeoCompositeShape": break;
          case "TGeoShapeAssembly": break;
          case "TGeoScaledShape":
+            console.error(shape)
             info = provideObjectInfo(shape.fShape);
             if (shape.fScale)
                info.unshift('Scale X=' + shape.fScale.fScale[0] + " Y=" + shape.fScale.fScale[1] + " Z=" + shape.fScale.fScale[2]);
@@ -2131,6 +2152,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @memberof JSROOT.GEO
      * @private */
    function createProjectionMatrix(camera) {
+
       let cameraProjectionMatrix = new THREE.Matrix4();
 
       camera.updateMatrixWorld();
@@ -2281,6 +2303,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
 
    /** @summary Returns TGeoShape for element with given indx */
    ClonedNodes.prototype.getNodeShape = function(indx) {
+      // console.error(this.nodes)
       if (!this.origin || !this.nodes) return null;
       let obj = this.origin[indx], clone = this.nodes[indx];
       if (!obj || !clone) return null;
@@ -2398,6 +2421,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
              clone.fDY = shape.fDY;
              clone.fDZ = shape.fDZ;
              clone.vol = shape.fDX*shape.fDY*shape.fDZ;
+             ////debugger
              if (shape.$nfaces === undefined)
                 shape.$nfaces = createGeometry(shape, -1);
              clone.nfaces = shape.$nfaces;
@@ -2655,7 +2679,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
    }
 
    /** @summary Returns description for provide stack */
-   ClonedNodes.prototype.resolveStack = function(stack, withmatrix) {
+   ClonedNodes.prototype.resolveStack = function(stack, withmatrix) {//查看名字时尝试使用
 
       let res = { id: 0, obj: null, node: this.nodes[0], name: this.name_prefix };
 
@@ -2689,7 +2713,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
             if (withmatrix && res.node.matrix)
                res.matrix.multiply(new THREE.Matrix4().fromArray(res.node.matrix));
          }
-
+      res.name = res.obj.fName;//新加的地方，尝试是否可以测试有名字传入透明度处理函数中
       return res;
    }
 
@@ -2907,7 +2931,8 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
      * @desc Such hierarchy repeats hierarchy of TGeoNodes and set matrix for the objects drawing
      * also set renderOrder, required to handle transparency */
    ClonedNodes.prototype.createObject3D = function(stack, toplevel, options) {
-
+      toplevel.name = stack[0]
+      console.log(toplevel,stack,this)
       let node = this.nodes[0], three_prnt = toplevel, draw_depth = 0,
           force = (typeof options == 'object') || (options==='force');
 
@@ -2920,6 +2945,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
 
          if (three_prnt.children)
             for (let i = 0; i < three_prnt.children.length; ++i) {
+               three_prnt.chil
                if (three_prnt.children[i].nchld === nchld) {
                   obj3d = three_prnt.children[i];
                   break;
@@ -3254,6 +3280,7 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
    /** @summary Build shapes */
    ClonedNodes.prototype.buildShapes = function(lst, limit, timelimit) {
 
+      ////debugger
       let created = 0,
           tm1 = new Date().getTime(),
           res = { done: false, shapes: 0, faces: 0, notusedshapes: 0 };
@@ -3268,7 +3295,9 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
             item._typename = "$$Shape$$"; // let reuse item for direct drawing
             item.ready = true;
             if (item.geom === undefined) {
+               ////debugger
                item.geom = createGeometry(item.shape);
+
                if (item.geom) created++; // indicate that at least one shape was created
             }
             item.nfaces = countGeometryFaces(item.geom);
@@ -3800,7 +3829,6 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
          //else
          //   mesh.renderOrder = clones.maxdepth - entry.stack.length;
       }
-
       return toplevel;
    }
 
@@ -3817,6 +3845,6 @@ JSROOT.define(['three', 'csg'], (THREE, ThreeBSP) => {
    JSROOT.GEO = geo;
 
    if (JSROOT.nodejs) module.exports = geo;
-
+   console.error(geo)
    return geo;
 });

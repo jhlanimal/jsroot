@@ -99,6 +99,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
    /** @summary draw special */
    GeoDrawingControl.prototype.drawSpecial = function(col /*, indx*/) {
       let c = this.mesh;
+      console.log(c)
       if (!c || !c.material) return;
 
       if (col) {
@@ -206,7 +207,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
    TGeoPainter.prototype = Object.create(JSROOT.ObjectPainter.prototype);
 
-   /** @summary Create toolbar */
+   /** @summary Create toolbar  左下角打开交互栏部分*/
    TGeoPainter.prototype.createToolbar = function() {
       if (this._toolbar || !this._webgl || this.ctrl.notoolbar || JSROOT.batch_mode) return;
       let buttonList = [{
@@ -422,7 +423,9 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
    }
 
    /** @summary Modify visibility of provided node by name */
-   TGeoPainter.prototype.modifyVisisbility = function(name, sign) {
+   TGeoPainter.prototype.modifyVisisbility = function(name, sign) {//测试时候一直没有调用这个函数
+      //debugger
+      console.log(name, sign)
       if (geo.getNodeKind(this.getGeometry()) !== 0) return;
 
       if (name == "")
@@ -446,7 +449,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
    }
 
    /** @summary Decode drawing options */
-   TGeoPainter.prototype.decodeOptions = function(opt) {
+   TGeoPainter.prototype.decodeOptions = function(opt) {//toobar中各种自定义参数
       if (typeof opt != "string") opt = "";
 
       let res = { _grid: false, _bound: false, _debug: false,
@@ -459,7 +462,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
                    highlight: false, highlight_scene: false, no_screen: false,
                    project: '', is_main: false, tracks: false, showtop: false, can_rotate: true, ortho_camera: false,
                    clipx: false, clipy: false, clipz: false, usessao: false, usebloom: true, outline: false,
-                   script_name: "", transparency: 0, rotate: false, background: '#FFFFFF',
+                   script_name: "", transparency: 0.5, rotate: false, background: '#FFFFFF',
                    depthMethod: "dflt", mouse_tmout: 50, trans_radial: 0, trans_z: 0 };
 
       let dd = JSROOT.decodeUrl();
@@ -490,7 +493,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
          let name = opt.substring(p1+1, p2);
          opt = opt.substr(0,p1) + opt.substr(p2);
          // console.log("Modify visibility", sign,':',name);
-
+         
          this.modifyVisisbility(name, sign);
       }
 
@@ -599,7 +602,8 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
       // when drawing geometry without TCanvas, yup = true by default
       if (res._yup === undefined)
          res._yup = this.getCanvSvg().empty();
-
+      //debugger
+      console.error(res);
       return res;
    }
 
@@ -715,19 +719,43 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
     * @param {boolean} [skip_render] - if specified, do not perform rendering */
    TGeoPainter.prototype.changedGlobalTransparency = function(transparency, skip_render) {
       let func = (typeof transparency == 'function') ? transparency : null;
+      // let info = .stack;
+      let index = 0;
       if (func || (transparency === undefined)) transparency = this.ctrl.transparency;
       this._toplevel.traverse( function (node) {
+         // console.log(node)
+         // let info = this.getStackFullName(node.name);
+         index++;
          if (node && node.material && (node.material.inherentOpacity !== undefined)) {
             let t = func ? func(node) : undefined;
-            if (t !== undefined)
+            if (t !== undefined){
+               // console.log(1213123122);
                node.material.opacity = 1 - t;
-            else
+            }
+            else{
+               // console.log(11231321)
                node.material.opacity = Math.min(1 - (transparency || 0), node.material.inherentOpacity);
+            }
             node.material.transparent = node.material.opacity < 1;
          }
       });
+      console.log(index,this._clones,this._toplevel)
       if (!skip_render) this.render3D(-1);
    }
+   /** @summary 修改部分透明度 */
+   TGeoPainter.prototype.changedPartTransparency = function(transparency, skip_render){//10.12 修改部分透明度 by jhl
+      console.log(transparency,skip_render)
+   }
+
+   TGeoPainter.prototype.changeTextBool = function(textbool){
+      // this.textshow.listen().()
+   }
+
+   /** @summary 选取部分组 */
+   TGeoPainter.prototype.selectPartGroup = function(text){
+      console.log(text)
+   }
+
 
    /** @summary Reset transformation */
    TGeoPainter.prototype.resetTransformation = function() {
@@ -926,7 +954,10 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
       // Appearance Options
 
       let appearance = this._datgui.addFolder('Appearance');
-
+      console.log(this.ctrl)
+      this.ctrl.parttransparency = 0
+      this.ctrl.text = 0
+      this.ctrl.textbool = false
       appearance.add(this.ctrl, 'highlight').name('Highlight Selection')
                 .listen().onChange(this.changedHighlight.bind(this));
 
@@ -938,6 +969,14 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
       appearance.add(this.ctrl, 'wireframe').name('Wireframe')
                      .listen().onChange(this.changedWireFrame.bind(this));
+      appearance.add(this.ctrl,'parttransparency', 0.0, 1.0, 0.001).name('Partopacity') //10.12 修改部分透明度
+                     .listen().onChange(this.changedPartTransparency.bind(this));
+
+      appearance.add(this.ctrl,'textbool').name('textbool') //10.12 判断是否实时监控text数据
+                     .listen().onChange(this.changeTextBool.bind(this));
+      
+      this.textshow =  appearance.add(this.ctrl,'text',{ "0-1" : 0, "0-2": 1, "0-3": 2}).name('Selectgroup') //10.12 选取部分组
+                    .listen().onChange(this.selectPartGroup.bind(this));
 
       this.ctrl._axis_cfg = 0;
       appearance.add(this.ctrl, '_axis', { "none" : 0, "show": 1, "center": 2}).name('Axes')
@@ -1104,11 +1143,11 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
          this._effectComposer.addPass( this._ssaoPass );
       }
    }
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
    /** @summary Show context menu for orbit control
      * @private */
    TGeoPainter.prototype.orbitContext = function(evnt, intersects) {
-
+      debugger
       jsrp.createMenu(evnt, this).then(menu => {
          let numitems = 0, numnodes = 0, cnt = 0;
          if (intersects)
@@ -1227,7 +1266,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
    /** @summary Filter some objects from three.js intersects array */
    TGeoPainter.prototype.filterIntersects = function(intersects) {
-
+      debugger
       if (!intersects.length) return intersects;
 
       // check redirections
@@ -1314,7 +1353,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
    }
 
    /** @summary perform mesh highlight */
-   TGeoPainter.prototype.highlightMesh = function(active_mesh, color, geo_object, geo_index, geo_stack, no_recursive) {
+   TGeoPainter.prototype.highlightMesh = function(active_mesh, color, geo_object, geo_index, geo_stack, no_recursive) {//设置高亮
 
       if (geo_object) {
          active_mesh = active_mesh ? [ active_mesh ] : [];
@@ -1374,7 +1413,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
       }
       if (same) return !!curr_mesh;
 
-      if (curr_mesh)
+      if (curr_mesh)//将原来的选中的小模块恢复到初始颜色
          for (let k = 0; k < curr_mesh.length; ++k)
             get_ctrl(curr_mesh[k]).setHighlight();
 
@@ -1441,19 +1480,20 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
       this._controls.contextMenu = this.orbitContext.bind(this);
 
-      this._controls.ProcessMouseMove = function(intersects) {
-
+      this._controls.ProcessMouseMove = function(intersects) {//表示处理鼠标划过的小模块的属性，传入为数组，当取消高亮时，将intersects设置为空数组即可。
+         console.log("processmousemove1452",intersects)
          // painter already cleaned up, ignore any incoming events
          if (!painter.ctrl || !painter._controls) return;
 
          let active_mesh = null, tooltip = null, resolve = null, names = [], geo_object, geo_index;
 
          // try to find mesh from intersections
+         debugger
          for (let k = 0; k < intersects.length; ++k) {
             let obj = intersects[k].object, info = null;
             if (!obj) continue;
             if (obj.geo_object) info = obj.geo_name; else
-            if (obj.stack) info = painter.getStackFullName(obj.stack);
+            if (obj.stack) info = painter.getStackFullName(obj.stack);//获取当前小模块的名字
             if (!info) continue;
 
             if (info.indexOf("<prnt>")==0)
@@ -1472,8 +1512,8 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
                if (active_mesh.stack) resolve = painter.resolveStack(active_mesh.stack);
             }
          }
-
-         painter.highlightMesh(active_mesh, undefined, geo_object, geo_index);
+         debugger
+         painter.highlightMesh(active_mesh, undefined, geo_object, geo_index);//高亮当前鼠标所在的位置的小模块
 
          if (painter.ctrl.update_browser) {
             if (painter.ctrl.highlight && tooltip) names = [ tooltip ];
@@ -1567,7 +1607,8 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
      * return 2 when call must be done from processWorkerReply
      * @returns {number} next operation kind, see desc */
    TGeoPainter.prototype.nextDrawAction = function() {
-
+      ////debugger
+      console.log("1577")
       if (!this._clones || (this.drawing_stage == 0)) return false;
 
       if (this.drawing_stage == 1) {
@@ -1673,6 +1714,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
                del = this._clones.mergeVisibles(this._new_draw_nodes, this._draw_nodes);
 
             // remove should be fast, do it here
+            //debugger
             for (let n=0;n<del.length;++n)
                this._clones.createObject3D(del[n].stack, this._toplevel, 'delete_mesh');
 
@@ -1761,7 +1803,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
          for (let n = 0; n < this._draw_nodes.length; ++n) {
             let entry = this._draw_nodes[n];
             if (entry.done) continue;
-
+            ////debugger
             /// shape can be provided with entry itself
             let shape = entry.server_shape || this._build_shapes[entry.shapeid];
             if (!shape.ready) {
@@ -1820,7 +1862,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
       }
 
       console.error('never come here stage = ' + this.drawing_stage);
-
+      //debugger
       return false;
    }
 
@@ -2133,7 +2175,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
       this._renderer = jsrp.createRender3D(w, h, this.options.Render3D, { antialias: true, logarithmicDepthBuffer: false, preserveDrawingBuffer: true });
 
       this._webgl = (this._renderer.jsroot_render3d === JSROOT.constants.Render3D.WebGL);
-
+      //debugger
       if (this._renderer.setPixelRatio && !JSROOT.nodejs)
          this._renderer.setPixelRatio(window.devicePixelRatio);
       this._renderer.setSize(w, h, !this._fit_main_area);
@@ -2168,7 +2210,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
          svg.appendChild(this._renderer.jsroot_dom);
          return svg;
       }
-
+      //debugger
       return this._renderer.jsroot_dom;
    }
 
@@ -2838,6 +2880,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
    /** @summary returns container for extra objects */
    TGeoPainter.prototype.getExtrasContainer = function(action, name) {
+      //debugger
       if (!this._toplevel) return null;
 
       if (!name) name = "tracks";
@@ -2999,6 +3042,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
    /** @summary Draw extra shape on the geometry */
    TGeoPainter.prototype.drawExtraShape = function(obj, itemname) {
+      debugger
       let toplevel = geo.build(obj);
       if (!toplevel) return false;
 
@@ -3248,7 +3292,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
       }
 
       this.createToolbar();
-
+      //debugger
       if (this._clones)
          return new Promise(resolveFunc => {
             this._resolveFunc = resolveFunc;
@@ -3262,6 +3306,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
    /** @summary methods show info when first geometry drawing is performed */
    TGeoPainter.prototype.showDrawInfo = function(msg) {
+      
       if (!this._first_drawing || !this._start_drawing_time) return;
 
       let main = this._renderer.domElement.parentNode,
@@ -3278,22 +3323,22 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
    /** @summary Reentrant method to perform geometry drawing step by step */
    TGeoPainter.prototype.continueDraw = function() {
-
+      console.log(111111111111111111111111111)
       // nothing to do - exit
       if (this.drawing_stage === 0) return;
 
       let tm0 = new Date().getTime(),
           interval = this._first_drawing ? 1000 : 200,
           now = tm0;
-
+      
       while(true) {
-
+         
          let res = this.nextDrawAction();
 
          if (!res) break;
 
          now = new Date().getTime();
-
+         
          // stop creation after 100 sec, render as is
          if (now - this._startm > 1e5) {
             this.drawing_stage = 0;
@@ -3302,7 +3347,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
          // if we are that fast, do next action
          if ((res === true) && (now - tm0 < interval)) continue;
-
+         
          if ((now - tm0 > interval) || (res === 1) || (res === 2)) {
 
             jsrp.showProgress(this.drawing_log);
@@ -3319,7 +3364,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
             return;
          }
       }
-
+      
       let take_time = now - this._startm;
 
       if (this._first_drawing || this._full_redrawing)
@@ -3898,6 +3943,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
          }
 
          if (this.ctrl.transparency !== 0)
+            //debugger
             this.changedGlobalTransparency(this.ctrl.transparency, true);
 
          if (first_time)
@@ -3912,6 +3958,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
          this._scene.overrideMaterial = null;
 
          if (this._provided_more_nodes !== undefined) {
+            debugger
             this.appendMoreNodes(this._provided_more_nodes, true);
             delete this._provided_more_nodes;
          }
@@ -4233,7 +4280,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
       let draw_obj = this.getGeometry(), name_prefix = "";
       if (this.geo_manager) name_prefix = draw_obj.fName;
-
+      //debugger
       this.prepareObjectDraw(draw_obj, name_prefix);
 
       return true;
@@ -4252,10 +4299,11 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
       //   geo.GradPerSegm = 360/obj.fNsegments;
 
       // painter.addToPadPrimitives(); // will add to pad primitives if any
-
+      // debugger
       painter.options = painter.decodeOptions(opt); // indicator of initialization
 
       // copy all attributes from options to control
+      //debugger
       JSROOT.extend(painter.ctrl, painter.options);
 
       painter.ctrl.ssao.enabled = painter.options.usessao;
@@ -4270,6 +4318,8 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
    }
 
    let drawGeoObject = (divid, obj, opt) => {
+      // debugger
+      console.log(opt)
       if (!obj) return null;
 
       let shape = null, extras = null, extras_path = "", is_eve = false;
@@ -4762,6 +4812,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
    /** @summary Expand geo object
      * @private */
    geo.expandObject = function(parent, obj) {
+      console.log(parent)
       if (!parent || !obj) return false;
 
       let isnode = (obj._typename.indexOf('TGeoNode') === 0),

@@ -19,6 +19,7 @@ if (console) console.log('geoworker started ' + THREE.REVISION);
 let clones = null;
 
 onmessage = function(e) {
+   console.error(e);
 
    if (typeof e.data == 'string') {
       console.log('Worker get message ' + e.data);
@@ -115,7 +116,7 @@ onmessage = function(e) {
       e.data.tm2 = new Date().getTime();
 
       // console.log('Collect visibles in worker ' + e.data.new_nodes.length + ' takes ' + (e.data.tm2-e.data.tm1));
-
+      console.error(e)
       return postMessage(e.data);
    }
 

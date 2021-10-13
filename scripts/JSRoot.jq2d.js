@@ -410,7 +410,9 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
 
    /** @summary Create item html code
      * @private */
-   HierarchyPainter.prototype.addItemHtml = function(hitem, d3prnt, arg) {
+   HierarchyPainter.prototype.addItemHtml = function(hitem, d3prnt, arg,evnt) {
+      console.log(hitem)
+      debugger
       if (!hitem || ('_hidden' in hitem)) return true;
 
       let isroot = (hitem === this.h),
@@ -539,7 +541,57 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
       if (hitem._direct_context && JSROOT.settings.ContextMenu)
          d3a.on('contextmenu', function(evnt) { h.direct_contextmenu(evnt, this); });
 
-      let element_name = hitem._name, element_title = "";
+      console.log(hitem)
+      // let element_name = hitem.nameId, element_title = "";
+      // if (arg != "update"){
+      //    element_name = arg
+      // }else{
+      //    // let d3cont = d3.select(node.parentNode.parentNode);
+      //    // element_name = d3cont.attr('item');
+      //    console.log(evnt)
+      // }
+      // element_name = hitem._name
+      // if(hitem._parent!=undefined){
+      //    element_name = hitem._parent.nameId +"-"+ element_name
+      // }else{
+      //    element_name = 0 +"-"+ hitem.nameId
+      // }
+      let hit = hitem;//by jhl
+      let startbool = false;
+      while(true){
+         if(hit._parent == undefined){
+            break;
+         }else if(hit._parent._name == "world_volume"){
+            startbool = true;
+         }
+         hit = hit._parent;
+      }
+      hit = hitem
+      let element_name = hitem.nameId;
+      let element_title = ""; //10.11
+      let endbool = true;
+      if(startbool){
+         while(true){
+            if(endbool){
+               if (arg != "update"){
+                  element_name = arg;
+               }
+               endbool = false;
+            }else if(hit._name != "world_volume"){
+               element_name = hit.nameId + "-" + element_name;
+            }
+            if(hit._name == "world_volume"){
+               element_name = '0' + "-" + element_name;
+               break;
+            }
+            hit = hit._parent;
+         }
+      }else{
+         element_name = hitem._name;
+      }
+      if(hitem._name == "world_volume"){
+         element_name = '0'
+      }
 
       if ('_realname' in hitem)
          element_name = hitem._realname;
@@ -569,7 +621,7 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
          for (let i = 0; i < hitem._childs.length; ++i) {
             let chld = hitem._childs[i];
             chld._parent = hitem;
-            if (!this.addItemHtml(chld, d3chlds, i)) break; // if too many items, skip rest
+            if (!this.addItemHtml(chld, d3chlds, i,evnt)) break; // if too many items, skip rest
          }
       }
 
@@ -710,7 +762,8 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
 
    /** @summary Update item node
      * @private */
-   HierarchyPainter.prototype.updateTreeNode = function(hitem, d3cont) {
+   HierarchyPainter.prototype.updateTreeNode = function(hitem, d3cont,evnt) {
+      console.log(arguments)
       if ((d3cont===undefined) || d3cont.empty())  {
          d3cont = d3.select(hitem._d3cont ? hitem._d3cont : null);
          let name = this.itemFullName(hitem);
@@ -721,8 +774,9 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
          if (d3cont.empty()) return;
       }
 
-      this.addItemHtml(hitem, d3cont, "update");
+      // this.addItemHtml(hitem, d3cont, "update");//10.11
 
+      this.addItemHtml(hitem, d3cont, "update",evnt);
       if (this.brlayout) this.brlayout.adjustBrowserSize(true);
    }
 
@@ -748,20 +802,20 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
      * @private */
    HierarchyPainter.prototype.tree_click = function(evnt, node, place) {
       if (!node) return;
-
+      console.log(evnt,node,place)
+      let a = this.findItem("HERD.root/Default;1/world_volume")
       let d3cont = d3.select(node.parentNode.parentNode),
-          itemname = d3cont.attr('item'),
-          hitem = itemname ? this.findItem(itemname) : null;
+      itemname = d3cont.attr('item'),
+      hitem = itemname ? this.findItem(itemname) : null;
+      console.log(hitem,evnt,node,place)
       if (!hitem) return;
 
       if (hitem._break_point) {
          // special case of more item
 
          delete hitem._break_point;
-
          // update item itself
-         this.addItemHtml(hitem, d3cont, "update");
-
+         this.addItemHtml(hitem, d3cont, "update",evnt);
          let prnt = hitem._parent, indx = prnt._childs.indexOf(hitem),
              d3chlds = d3.select(d3cont.node().parentNode);
 
@@ -772,7 +826,7 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
          for (let n=indx+1;n<prnt._childs.length;++n) {
             let chld = prnt._childs[n];
             chld._parent = prnt;
-            if (!this.addItemHtml(chld, d3chlds, n)) break; // if too many items, skip rest
+            if (!this.addItemHtml(chld, d3chlds, n,evnt)) break; // if too many items, skip rest
          }
 
          return;
@@ -793,7 +847,7 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
          if (typeof hitem._icon_click == 'function') func = hitem._icon_click; else
          if (handle && typeof handle.icon_click == 'function') func = handle.icon_click;
          if (func && func(hitem,this))
-            this.updateTreeNode(hitem, d3cont);
+            this.updateTreeNode(hitem, d3cont,evnt);
          return;
       }
 
@@ -868,15 +922,15 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
       else
          hitem._isopen = true;
 
-      this.updateTreeNode(hitem, d3cont);
+      this.updateTreeNode(hitem, d3cont,evnt);
    }
 
    /** @summary Handler for mouse-over event
      * @private */
    HierarchyPainter.prototype.tree_mouseover = function(on, elem) {
       let itemname = d3.select(elem.parentNode.parentNode).attr('item');
-
       let hitem = this.findItem(itemname);
+      let a = this.findItem("HERD.root/Default;1/world_volume")
       if (!hitem) return;
 
       let painter, prnt = hitem;
@@ -1163,7 +1217,7 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
          return Promise.resolve(true);
       }
 
-      let guiCode = `<p class='jsroot_browser_version'><a href='https://root.cern/js/'>JSROOT</a> version <span style='color:green'><b>${JSROOT.version}</b></span></p>`;
+      let guiCode = `<p class='jsroot_browser_version' style='display:none'><a href='https://root.cern/js/'>JSROOT</a> version <span style='color:green'><b>${JSROOT.version}</b></span></p>`;
 
       if (this.is_online) {
          guiCode +='<p> Hierarchy in <a href="h.json">json</a> and <a href="h.xml">xml</a> format</p>'
@@ -1187,7 +1241,8 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
             +'<input type="file" class="gui_localFile" accept=".root" style="display:none"/><output id="list" style="display:none"></output>'
             +'<input type="button" value="..." class="gui_fileBtn" style="min-width:3em;padding:3px;margin-left:5px;margin-right:5px;" title="select local file for reading"/><br/>'
             +'</div>'
-            +'<p id="gui_fileCORS"><small><a href="https://github.com/root-project/jsroot/blob/master/docs/JSROOT.md#reading-root-files-from-other-servers">Read docu</a>'
+            +'<br>'
+            +'<p id="gui_fileCORS" style="display:none"><small><a href="https://github.com/root-project/jsroot/blob/master/docs/JSROOT.md#reading-root-files-from-other-servers">Read docu</a>'
             +' how to open files from other servers.</small></p>'
             +'<div style="display:flex;flex-direction:row">'
             +'<input style="padding:3px;margin-right:5px;"'
@@ -1251,6 +1306,7 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
          });
 
          this.selectLocalFile = function() {
+            console.error("1254")
             return new Promise(resolveFunc => {
                localfile_read_callback = resolveFunc;
                $("#" + this.gui_div + " .jsroot_browser").find(".gui_localFile").click();
@@ -1264,6 +1320,7 @@ JSROOT.define(['d3', 'jquery', 'painter', 'hierarchy', 'jquery-ui', 'jqueryui-mo
                      'grid 2x2', 'grid 1x3', 'grid 2x3', 'grid 3x3', 'grid 4x4', 'collapsible',  'tabs'];
 
          for (let k=0;k<lst.length;++k){
+            //debugger
             let opt = document.createElement('option');
             opt.value = lst[k];
             opt.innerHTML = lst[k];

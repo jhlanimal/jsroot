@@ -270,19 +270,20 @@ JSROOT.define(['d3', 'threejs_jsroot', 'painter'], (d3, THREE, jsrp) => {
      * @param {value} render3d - render type, see {@link JSROOT.constants.Render3D}
      * @param {object} args - different arguments for creating 3D renderer
      * @private */
-   jsrp.createRender3D = function(width, height, render3d, args) {
+   jsrp.createRender3D = function(width, height, render3d, args) {//arg 渲染时的参数设计 ？llogarithmicDepthBuffer 参数现在我false 以后尝试true
 
       let rc = JSROOT.constants.Render3D;
 
-      render3d = jsrp.getRender3DKind(render3d);
+      render3d = jsrp.getRender3DKind(render3d);//获得画布种类
 
       if (!args) args = { antialias: true, alpha: true };
 
       let need_workaround = false, renderer,
-          doc = JSROOT._.get_document();
+          doc = JSROOT._.get_document();//返回当前正在使用的文件
 
       if (render3d == rc.WebGL) {
          // interactive WebGL Rendering
+         debugger
          renderer = new THREE.WebGLRenderer(args);
 
       } else if (render3d == rc.SVG) {
@@ -765,6 +766,7 @@ JSROOT.define(['d3', 'threejs_jsroot', 'painter'], (d3, THREE, jsrp) => {
       }
 
       control.getMousePos = function(evnt, mouse) {
+
          mouse.x = ('offsetX' in evnt) ? evnt.offsetX : evnt.layerX;
          mouse.y = ('offsetY' in evnt) ? evnt.offsetY : evnt.layerY;
          mouse.clientX = evnt.clientX;
@@ -782,6 +784,7 @@ JSROOT.define(['d3', 'threejs_jsroot', 'painter'], (d3, THREE, jsrp) => {
       }
 
       control.getMouseIntersects = function(mouse) {
+         // debugger
          // domElement gives correct coordinate with canvas render, but isn't always right for webgl renderer
          if (!this.renderer) return [];
 
@@ -1178,6 +1181,7 @@ JSROOT.define(['d3', 'threejs_jsroot', 'painter'], (d3, THREE, jsrp) => {
 
    // these segments address vertices from the mesh, we can use positions from box mesh
    jsrp.Box3D.MeshSegments = (function() {
+      console.error(arguments)
       let box3d = jsrp.Box3D,
           arr = new Int32Array(box3d.Segments.length);
 
@@ -1187,6 +1191,7 @@ JSROOT.define(['d3', 'threejs_jsroot', 'painter'], (d3, THREE, jsrp) => {
                arr[n] = k; break;
             }
       }
+      console.error(arr)
       return arr;
    })();
 
@@ -1249,6 +1254,7 @@ JSROOT.define(['d3', 'threejs_jsroot', 'painter'], (d3, THREE, jsrp) => {
 
    /** @summary set highlight */
    PointsControl.prototype.setHighlight = function(col, indx) {
+      console.error(arguments)
       let m = this.mesh;
       m.h_index = indx;
       if (col)
@@ -1260,6 +1266,7 @@ JSROOT.define(['d3', 'threejs_jsroot', 'painter'], (d3, THREE, jsrp) => {
 
    /** @summary create special object */
    PointsControl.prototype.createSpecial = function(color, index) {
+      console.error(arguments)
       let m = this.mesh;
       if (!color) {
          if (m.js_special) {
@@ -1272,6 +1279,7 @@ JSROOT.define(['d3', 'threejs_jsroot', 'painter'], (d3, THREE, jsrp) => {
 
       if (!m.js_special) {
          let geom = new THREE.BufferGeometry();
+         console.error(arguments)
          geom.setAttribute( 'position', m.geometry.getAttribute("position"));
          let material = new THREE.PointsMaterial( { size: m.material.size*2, color: color } );
          material.sizeAttenuation = m.material.sizeAttenuation;
@@ -1376,11 +1384,12 @@ JSROOT.define(['d3', 'threejs_jsroot', 'painter'], (d3, THREE, jsrp) => {
 
    // ==============================================================================
 
-   /** @summary Create material for 3D line
+   /** @summary Create material for 3D line 
      * @desc Takes into account dashed properties
      * @private
      * @memberof JSROOT.Painter */
    function create3DLineMaterial(painter, obj) {
+      console.error(arguments)
       if (!painter || !obj) return null;
 
       let lcolor = painter.getColor(obj.fLineColor),
@@ -1405,8 +1414,11 @@ JSROOT.define(['d3', 'threejs_jsroot', 'painter'], (d3, THREE, jsrp) => {
      * @private
      * @memberof JSROOT.Painter */
    function drawPolyLine3D() {
+      
       let line = this.getObject(),
           main = this.getFramePainter();
+         console.error(main)
+         console.error(line)
 
       if (!main || !main.mode3d || !main.toplevel || !line)
          return null;

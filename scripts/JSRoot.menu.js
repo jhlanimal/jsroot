@@ -102,6 +102,7 @@ JSROOT.define(['d3', 'jquery', 'painter', 'jquery-ui'], (d3, $, jsrp) => {
         * @param {string} name - item name
         * @param {function} func - func called when item is selected */
       addchk(flag, name, arg, func) {
+         // debugger
          let handler = func;
          if (typeof arg == 'function') {
             func = arg;
@@ -117,6 +118,7 @@ JSROOT.define(['d3', 'jquery', 'painter', 'jquery-ui'], (d3, $, jsrp) => {
       /** @summary Add draw sub-menu with draw options
         * @protected */
       addDrawMenu(top_name, opts, call_back) {
+         debugger
          if (!opts) opts = [];
          if (opts.length==0) opts.push("");
 

@@ -881,7 +881,7 @@ JSROOT.define(['d3', 'painter'], (d3, jsrp) => {
      * @param {object} [arg.top] - element to start search from
      * @private */
    HierarchyPainter.prototype.findItem = function(arg) {
-
+      // debugger
       function find_in_hierarchy(top, fullname) {
 
          if (!fullname || (fullname.length == 0) || !top) return top;
@@ -904,7 +904,18 @@ JSROOT.define(['d3', 'painter'], (d3, jsrp) => {
             // set parent pointer when searching child
             if (!ignore_prnt) child._parent = top;
 
-            if ((pos >= fullname.length-1) || (pos < 0)) return child;
+            if ((pos >= fullname.length-1) || (pos < 0)){
+               if(child._childs != undefined){
+                  for(let i = 0;i < child._childs.length;i++){
+                     // debugger
+                     child._childs[i].nameId = i;
+                     // console.log(child._childs[i],1111111111111111111111111111111111)//10.12  by jhl
+                  }
+               }
+               
+               console.log(child,913)
+               return child;
+            } 
 
             return find_in_hierarchy(child, fullname.substr(pos + 1));
          }
@@ -1825,15 +1836,15 @@ JSROOT.define(['d3', 'painter'], (d3, jsrp) => {
      * @returns {Promise} when file is opened */
    HierarchyPainter.prototype.openRootFile = function(filepath) {
       // first check that file with such URL already opened
-
+      // debugger
       let isfileopened = false;
       this.forEachRootFile(item => { if (item._fullurl===filepath) isfileopened = true; });
       if (isfileopened) return Promise.resolve();
 
       jsrp.showProgress("Opening " + filepath + " ...");
-
+      
       return JSROOT.openFile(filepath).then(file => {
-
+         
          let h1 = this.fileHierarchy(file);
          h1._isopen = true;
          if (!this.h) {
@@ -1845,12 +1856,12 @@ JSROOT.define(['d3', 'painter'], (d3, jsrp) => {
             let h0 = this.h, topname = (h0._kind == "ROOT.TFile") ? "Files" : "Items";
             this.h = { _name: topname, _kind: 'TopFolder', _childs : [h0, h1], _isopen: true };
          }
-
+         
          return this.refreshHtml();
       }).catch(() => {
          // make CORS warning
          if (!d3.select("#gui_fileCORS").style("background","red").empty())
-             setTimeout(function() { d3.select("#gui_fileCORS").style("background",''); }, 5000);
+         setTimeout(function() { d3.select("#gui_fileCORS").style("background",''); }, 5000);
          return false;
       }).finally(() => jsrp.showProgress());
    }
@@ -2513,7 +2524,7 @@ JSROOT.define(['d3', 'painter'], (d3, jsrp) => {
 
       let openAllFiles = () => {
          let promise;
-
+         console.error("2516")
          if (prereq) {
             promise = JSROOT.require(prereq); prereq = "";
          } else if (load) {
@@ -2527,6 +2538,7 @@ JSROOT.define(['d3', 'painter'], (d3, jsrp) => {
          else if (filesarr.length > 0)
             promise = this.openRootFile(filesarr.shift());
          else if ((localfile!==null) && (typeof this.selectLocalFile == 'function')) {
+            console.error("2530")
             localfile = null; promise = this.selectLocalFile();
          } else if (expanditems.length > 0)
             promise = this.expandItem(expanditems.shift());

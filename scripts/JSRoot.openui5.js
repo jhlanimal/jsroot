@@ -27,6 +27,7 @@ JSROOT.define(['jquery', 'jquery-ui'], () => {
    };
 
    function TryOpenOpenUI(sources) {
+      console.error(sources)
 
       // where to take openui5 sources
       let src = sources.shift();

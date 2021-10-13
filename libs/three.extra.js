@@ -2499,7 +2499,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 	}
 
 	function onMouseMove( event ) {
-
+		
 		if ( scope.enabled === false ) return;
 
 		event.preventDefault();
